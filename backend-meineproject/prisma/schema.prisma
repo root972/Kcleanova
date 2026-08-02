@@ -1,0 +1,72 @@
+// 1. Configure Database Connection & Generator
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 2. Define Enums
+enum Role {
+  ADMIN
+  WORKER
+}
+
+// 3. User Table
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(WORKER)
+  createdAt DateTime @default(now())
+
+  worker    Worker?
+}
+
+// 4. Worker Table
+model Worker {
+  id        Int        @id @default(autoincrement())
+  userId    Int        @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone     String?
+  status    String     @default("inactive")
+
+  jobs      Job[]
+  shifts    Shift[]
+  locations Location[]
+}
+
+// 5. Job Table
+model Job {
+  id               Int      @id @default(autoincrement())
+  title            String
+  description      String?
+  workLocation     String
+  assignedWorkerId Int?
+  assignedWorker   Worker?  @relation(fields: [assignedWorkerId], references: [id])
+  status           String   @default("pending")
+  createdAt        DateTime @default(now())
+}
+
+// 6. Shift Table
+model Shift {
+  id        Int       @id @default(autoincrement())
+  workerId  Int
+  worker    Worker    @relation(fields: [workerId], references: [id])
+  startTime DateTime  @default(now())
+  endTime   DateTime?
+  status    String    @default("active")
+}
+
+// 7. Location Table
+model Location {
+  id        Int      @id @default(autoincrement())
+  workerId  Int
+  worker    Worker   @relation(fields: [workerId], references: [id])
+  latitude  Float
+  longitude Float
+  timestamp DateTime @default(now())
+}
