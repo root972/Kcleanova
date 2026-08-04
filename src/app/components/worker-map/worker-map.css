@@ -1,0 +1,31 @@
+.map-wrapper {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #f0f0f0;
+}
+
+.status-badge.active {
+  background-color: #e6f4ea;
+  color: #137333;
+}
+
+.map-container {
+  height: 550px;
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}

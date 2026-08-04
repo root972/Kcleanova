@@ -202,12 +202,19 @@ app.post('/api/shifts/start', async (req, res) => {
 // 5. SOCKET.IO — LIVE TRACKING
 // ==========================================
 io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
+  console.log('⚡ Client connected:', socket.id);
 
-  socket.on('location:update', async (data) => {
+  // Helper function to process and broadcast locations
+  const handleLocationUpdate = async (data) => {
     const { workerId, latitude, longitude } = data;
-    io.emit('location:updated', { workerId, latitude, longitude, timestamp: new Date() });
+    const timestamp = new Date();
 
+    console.log(`📍 Received location for Worker #${workerId}: Lat ${latitude}, Lng ${longitude}`);
+
+    // 1. Broadcast update to Angular frontend
+    io.emit('location:updated', { workerId: parseInt(workerId), latitude, longitude, timestamp });
+
+    // 2. Save location entry in PostgreSQL via Prisma
     try {
       await prisma.location.create({
         data: {
@@ -216,13 +223,18 @@ io.on('connection', (socket) => {
           longitude
         }
       });
+      console.log(`💾 Saved location for Worker #${workerId} to DB.`);
     } catch (err) {
-      console.error('Failed to save location:', err.message);
+      console.error('⚠️ Failed to save location to DB:', err.message);
     }
-  });
+  };
+
+  // Handles both event variations (location:update and location:updated)
+  socket.on('location:update', handleLocationUpdate);
+  socket.on('location:updated', handleLocationUpdate);
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    console.log('🔌 Client disconnected:', socket.id);
   });
 });
 

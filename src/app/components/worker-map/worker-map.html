@@ -1,0 +1,9 @@
+<div class="map-wrapper">
+  <div class="header">
+    <h2>📍 Live Worker Tracking Map</h2>
+    <span class="status-badge" [class.active]="isLive">
+      {{ isLive ? '🟢 Live Feed Connected' : '🟡 Waiting for Data...' }}
+    </span>
+  </div>
+  <div #mapContainer class="map-container"></div>
+</div>

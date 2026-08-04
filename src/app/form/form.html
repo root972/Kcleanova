@@ -1,0 +1,52 @@
+<div>
+  <form (ngSubmit)="onSubmit()">
+
+    <div>
+      <label for="name">Name:</label>
+      <input 
+        type="text" 
+        id="name"
+        name="name"
+        [(ngModel)]="name" />
+    </div>
+
+    <div>
+      <label for="email">Email:</label>
+      <input 
+        type="email" 
+        id="email"
+        name="email"
+        [(ngModel)]="email" />
+    </div>
+
+    <div>
+      <label for="password">Password:</label>
+      <input 
+        type="password" 
+        id="password"
+        name="password"
+        [(ngModel)]="password" />
+    </div>
+
+    <div>
+      <label for="city">Select city:</label>
+      <input 
+        type="text" 
+        id="city"
+        name="city"
+        [(ngModel)]="city"
+        (input)="onCityInput()" />
+
+      <ul *ngIf="showDropdown">
+        <li 
+          *ngFor="let cityName of cityResults"
+          (click)="selectCity(cityName)">
+          {{ cityName }}
+        </li>
+      </ul>
+    </div>
+
+    <button type="submit">Submit</button>
+
+  </form>
+</div>

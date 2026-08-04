@@ -1,0 +1,14 @@
+<div class="alerts-container">
+  @if (alerts.length > 0) {
+    <div class="alert-box red">
+      <button (click)="clearAlerts()" class="clear-btn">Clear Alerts</button>
+      @for (alert of alerts; track $index) {
+        <p class="alert-item">{{ alert }}</p>
+      }
+    </div>
+  } @else {
+    <div class="alert-box green">
+      <p>✅ All workers are within the construction site boundary.</p>
+    </div>
+  }
+</div>
