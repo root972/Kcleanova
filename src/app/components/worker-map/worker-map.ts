@@ -17,6 +17,11 @@ export class WorkerMap implements OnInit, OnDestroy {
   private locationSub!: Subscription;
   isLive = false;
 
+  // ✅ Must match the threshold in AlertsPanel
+  private readonly SITE_LAT = 48.208492;
+  private readonly SITE_LNG = 16.373118;
+  private readonly GEOFENCE_RADIUS = 250;
+
   constructor(private locationService: LocationService) {}
 
   ngOnInit(): void {
@@ -25,13 +30,22 @@ export class WorkerMap implements OnInit, OnDestroy {
   }
 
   private initMap(): void {
-    // Initialize Leaflet map centered at Stephansplatz site
-    this.map = L.map(this.mapContainer.nativeElement).setView([48.208492, 16.373118], 16);
+    this.map = L.map(this.mapContainer.nativeElement).setView([this.SITE_LAT, this.SITE_LNG], 16);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© OpenStreetMap contributors'
     }).addTo(this.map);
+
+    // ✅ Draw the geofence boundary circle on the map so it's visible
+    L.circle([this.SITE_LAT, this.SITE_LNG], {
+      radius: this.GEOFENCE_RADIUS,
+      color: '#e74c3c',
+      fillColor: '#e74c3c',
+      fillOpacity: 0.08,
+      weight: 2,
+      dashArray: '6 4'
+    }).addTo(this.map).bindPopup('Geofence boundary (250m)');
   }
 
   private subscribeToLocations(): void {
@@ -48,7 +62,6 @@ export class WorkerMap implements OnInit, OnDestroy {
     const timeStr = new Date(timestamp).toLocaleTimeString();
     const popupContent = `<b>Worker #${workerId}</b><br>Updated: ${timeStr}`;
 
-    // 🎯 Pan map to keep worker inside viewable screen
     this.map.panTo(latLng);
 
     if (this.workerMarkers.has(workerId)) {
@@ -62,8 +75,6 @@ export class WorkerMap implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.locationSub) {
-      this.locationSub.unsubscribe();
-    }
+    if (this.locationSub) this.locationSub.unsubscribe();
   }
 }

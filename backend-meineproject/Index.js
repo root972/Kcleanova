@@ -231,7 +231,7 @@ io.on('connection', (socket) => {
 
   // Handles both event variations (location:update and location:updated)
   socket.on('location:update', handleLocationUpdate);
-  socket.on('location:updated', handleLocationUpdate);
+  
 
   socket.on('disconnect', () => {
     console.log('🔌 Client disconnected:', socket.id);

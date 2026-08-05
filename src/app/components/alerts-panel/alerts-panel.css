@@ -1,48 +1,50 @@
-.alerts-card {
-  background: #ffffff;
+.alerts-container {
+  margin-bottom: 16px;
+}
+
+.alert-box {
   border-radius: 8px;
   padding: 16px;
-  margin-bottom: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.alerts-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
+/* ✅ Green = all clear */
+.alert-box.green {
+  background: #f0fdf4;
+  border-left: 4px solid #16a34a;
+  color: #15803d;
+  font-weight: 500;
 }
 
-.alerts-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
+/* 🚨 Red = out of bounds alerts */
+.alert-box.red {
+  background: #fef2f2;
+  border-left: 4px solid #ef4444;
+  color: #991b1b;
 }
 
 .clear-btn {
-  background: #f1f5f9;
-  border: none;
-  padding: 4px 10px;
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #991b1b;
+  padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
-}
-
-.no-alerts {
-  color: #16a34a;
   font-weight: 500;
-  font-size: 0.95rem;
+  margin-bottom: 12px;
+  display: block;
 }
 
-.alerts-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.clear-btn:hover {
+  background: #fecaca;
 }
 
 .alert-item {
-  background: #fef2f2;
+  background: #fff;
   border-left: 4px solid #ef4444;
   color: #991b1b;
   padding: 10px 12px;
   border-radius: 4px;
   font-weight: 500;
+  margin-bottom: 8px;
 }

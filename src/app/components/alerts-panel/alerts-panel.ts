@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { LocationService, LocationUpdate } from '../../services/location.service';
 
@@ -10,17 +10,17 @@ import { LocationService, LocationUpdate } from '../../services/location.service
 })
 export class AlertsPanel implements OnInit, OnDestroy {
   alerts: string[] = [];
+  allClear = true;
   private locationSub!: Subscription;
 
-  // 🎯 SIMPLE GEOFENCE SETTINGS
   readonly SITE_LAT = 48.208492;
   readonly SITE_LNG = 16.373118;
-  readonly MAX_DISTANCE_METERS = 30; // 30 meters threshold
+  readonly MAX_DISTANCE_METERS = 250;
 
-  constructor(private locationService: LocationService) {}
+  // ✅ Inject NgZone — forces Angular to re-render when socket data arrives
+  constructor(private locationService: LocationService, private ngZone: NgZone) {}
 
   ngOnInit(): void {
-    // 👂 Listen to live location updates from backend
     this.locationSub = this.locationService.getLocationUpdates().subscribe(
       (data: LocationUpdate) => {
         const distance = this.getDistanceMeters(
@@ -30,24 +30,29 @@ export class AlertsPanel implements OnInit, OnDestroy {
           this.SITE_LNG
         );
 
-        console.log(`📡 WORKER #${data.workerId} DISTANCE: ${Math.round(distance)} meters`);
+        console.log(`📡 WORKER #${data.workerId} DISTANCE: ${Math.round(distance)}m (limit: ${this.MAX_DISTANCE_METERS}m)`);
 
-        // 🚨 IF WORKER IS MORE THAN 30 METERS AWAY -> TRIGGER ALERT IMMEDIATELY
         if (distance > this.MAX_DISTANCE_METERS) {
           const timeStr = new Date().toLocaleTimeString();
-          const alertMsg = `🚨 [${timeStr}] ALERT: Worker #${data.workerId} is OUT OF BOUNDS! (${Math.round(distance)}m away)`;
-          
-          // Push alert to screen array
-          this.alerts.unshift(alertMsg);
-          console.warn("ALERT TRIGGERED!", alertMsg);
+          const alertMsg = `🚨 [${timeStr}] Worker #${data.workerId} is OUT OF BOUNDS! (${Math.round(distance)}m away)`;
+
+          // ✅ Run inside Angular zone so the template re-renders immediately
+          this.ngZone.run(() => {
+            this.alerts.unshift(alertMsg);
+            this.allClear = false;
+            console.warn('ALERT TRIGGERED!', alertMsg);
+          });
+        } else {
+          this.ngZone.run(() => {
+            this.allClear = this.alerts.length === 0;
+          });
         }
       }
     );
   }
 
-  // Pure Math Distance Formula (Haversine in Meters)
   private getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371e3; // Earth radius in meters
+    const R = 6371e3;
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLon = (lon2 - lon1) * (Math.PI / 180);
     const a =
@@ -60,7 +65,10 @@ export class AlertsPanel implements OnInit, OnDestroy {
   }
 
   clearAlerts(): void {
-    this.alerts = [];
+    this.ngZone.run(() => {
+      this.alerts = [];
+      this.allClear = true;
+    });
   }
 
   ngOnDestroy(): void {

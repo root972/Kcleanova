@@ -17,16 +17,14 @@ export class LocationService {
   private locationSubject = new Subject<LocationUpdate>();
 
   constructor() {
-    // Connect to your Express Socket.io backend
     this.socket = io('http://localhost:3000');
 
-    // Listen for live broadcast events from backend
+    // ✅ Correct — listens for server broadcast event 'location:updated'
     this.socket.on('location:updated', (data: LocationUpdate) => {
       this.locationSubject.next(data);
     });
   }
 
-  // Returns an Observable stream that WorkerMap can subscribe to
   getLocationUpdates(): Observable<LocationUpdate> {
     return this.locationSubject.asObservable();
   }
