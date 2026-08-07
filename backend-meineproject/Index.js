@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
@@ -5,18 +6,49 @@ const { Server } = require('socket.io');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
+// Modular routes, helpers, and push notification services
+const pushRoutes = require('./helpers/services/routes/push.routes');
+const { calculateDistance } = require('./helpers/geofence');
+const { sendGeofencePushAlert } = require('./helpers/services/push.service');
+
 const app = express();
 const server = http.createServer(app);
+
+// Allowed origins for both Express HTTP & Socket.io WebSockets
+const allowedOrigins = [
+  'http://localhost:8081',
+  'http://127.0.0.1:8081',
+  'http://localhost:4200'
+];
+
+// Configure Express CORS
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
+// Configure Socket.io CORS
 const io = new Server(server, {
-  cors: { origin: 'http://localhost:4200' }
+  cors: {
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
 });
+
 const prisma = new PrismaClient();
 
+// Geofence configuration
+const SITE_CENTER = { lat: 48.2082, lng: 16.3738 };
+const MAX_RADIUS_METERS = 250;
+
 // ==========================================
-// MIDDLEWARE
+// MIDDLEWARE & API ROUTES
 // ==========================================
-app.use(cors({ origin: 'http://localhost:4200' }));
 app.use(express.json());
+
+// Register Push Notification API Route (/api/subscribe)
+app.use('/api', pushRoutes);
 
 // Root route
 app.get('/', (req, res) => {
@@ -199,42 +231,60 @@ app.post('/api/shifts/start', async (req, res) => {
 });
 
 // ==========================================
-// 5. SOCKET.IO — LIVE TRACKING
+// 5. SOCKET.IO — LIVE TRACKING & GEOFENCE PUSH
 // ==========================================
 io.on('connection', (socket) => {
-  console.log('⚡ Client connected:', socket.id);
+  console.log('Client connected:', socket.id);
 
-  // Helper function to process and broadcast locations
   const handleLocationUpdate = async (data) => {
-    const { workerId, latitude, longitude } = data;
+    const lat = data.lat !== undefined ? data.lat : data.latitude;
+    const lng = data.lng !== undefined ? data.lng : data.longitude;
+    const workerId = parseInt(data.workerId);
     const timestamp = new Date();
 
-    console.log(`📍 Received location for Worker #${workerId}: Lat ${latitude}, Lng ${longitude}`);
+    const distance = calculateDistance(SITE_CENTER.lat, SITE_CENTER.lng, lat, lng);
+    const roundedDistance = Math.round(distance);
 
-    // 1. Broadcast update to Angular frontend
-    io.emit('location:updated', { workerId: parseInt(workerId), latitude, longitude, timestamp });
+    console.log(`Received location for Worker #${workerId}: Lat ${lat}, Lng ${lng} (${roundedDistance}m away)`);
 
-    // 2. Save location entry in PostgreSQL via Prisma
+    io.emit('location:update', {
+      workerId,
+      lat,
+      lng,
+      latitude: lat,
+      longitude: lng,
+      distance: roundedDistance,
+      timestamp
+    });
+
+    if (distance > MAX_RADIUS_METERS) {
+      console.warn(`GEOFENCE BREACH: Worker #${workerId} is ${roundedDistance}m away from perimeter.`);
+      try {
+        await sendGeofencePushAlert(workerId, roundedDistance);
+        console.log('Web Push sent successfully.');
+      } catch (pushErr) {
+        console.error('Push Alert error:', pushErr);
+      }
+    }
+
     try {
       await prisma.location.create({
         data: {
-          workerId: parseInt(workerId),
-          latitude,
-          longitude
+          workerId,
+          latitude: lat,
+          longitude: lng
         }
       });
-      console.log(`💾 Saved location for Worker #${workerId} to DB.`);
+      console.log(`Saved location for Worker #${workerId} to DB.`);
     } catch (err) {
-      console.error('⚠️ Failed to save location to DB:', err.message);
+      console.error('Failed to save location to DB:', err.message);
     }
   };
 
-  // Handles both event variations (location:update and location:updated)
   socket.on('location:update', handleLocationUpdate);
-  
 
   socket.on('disconnect', () => {
-    console.log('🔌 Client disconnected:', socket.id);
+    console.log('Client disconnected:', socket.id);
   });
 });
 
@@ -243,5 +293,5 @@ io.on('connection', (socket) => {
 // ==========================================
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`🚀 Express & Socket.io server running at http://localhost:${PORT}`);
+  console.log(`Express & Socket.io server running at http://localhost:${PORT}`);
 });
