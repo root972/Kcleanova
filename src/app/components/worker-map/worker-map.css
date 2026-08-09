@@ -10,6 +10,12 @@
   margin-bottom: 12px;
 }
 
+.subtext {
+  margin: 0;
+  color: #555;
+  font-size: 13px;
+}
+
 .status-badge {
   padding: 6px 12px;
   border-radius: 20px;
@@ -23,9 +29,65 @@
   color: #137333;
 }
 
+.geofence-controls {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.control-group {
+  display: grid;
+  gap: 4px;
+}
+
+.control-group label {
+  font-size: 13px;
+  color: #444;
+}
+
+.control-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.save-btn {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #1a73e8;
+  color: white;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.save-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.save-message {
+  margin-left: 12px;
+  color: #2a7f31;
+  font-size: 13px;
+}
+
 .map-container {
   height: 550px;
   width: 100%;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.focus-btn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+}
+
+.focus-btn:hover {
+  background: #f7f7f7;
 }

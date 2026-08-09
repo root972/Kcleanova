@@ -1,7 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { UserRole } from '../../models/user.model';
 
 @Component({
   selector: 'app-register',
@@ -13,7 +12,6 @@ export class Register {
   fullName = '';
   email = '';
   password = '';
-  role: UserRole = 'WORKER';
 
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
@@ -36,13 +34,20 @@ export class Register {
     this.authService.register({
       fullName: this.fullName,
       email: this.email,
-      password: this.password,
-      role: this.role
+      password: this.password
     }).subscribe({
-      next: (res) => {
-        this.isLoading.set(false);
-        this.successMessage.set(res.message || 'Registration successful! Redirecting to login...');
-        setTimeout(() => this.router.navigate(['/login']), 1500);
+      next: () => {
+        // Automatically log the worker in after successful registration
+        this.authService.login({ email: this.email, password: this.password }).subscribe({
+          next: () => {
+            this.isLoading.set(false);
+            this.router.navigate(['/form']);
+          },
+          error: (loginErr) => {
+            this.isLoading.set(false);
+            this.errorMessage.set(loginErr.error?.message || 'Registration succeeded but automatic login failed. Please log in manually.');
+          }
+        });
       },
       error: (err) => {
         this.isLoading.set(false);

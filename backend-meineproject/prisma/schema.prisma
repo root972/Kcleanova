@@ -16,12 +16,16 @@ enum Role {
 
 // 3. User Table
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(WORKER)
-  createdAt DateTime @default(now())
+  id                     Int      @id @default(autoincrement())
+  name                   String
+  email                  String   @unique
+  password               String
+  role                   Role     @default(WORKER)
+  createdAt              DateTime @default(now())
+
+  // Password reset support
+  resetPasswordToken     String?  
+  resetPasswordExpires   DateTime?
 
   worker    Worker?
 }
@@ -69,4 +73,14 @@ model Location {
   latitude  Float
   longitude Float
   timestamp DateTime @default(now())
+}
+
+model Geofence {
+  id                 Int      @id @default(autoincrement())
+  siteLat            Float
+  siteLng            Float
+  radiusMeters       Int
+  gracePeriodSeconds Int
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }

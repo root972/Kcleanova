@@ -1,4 +1,3 @@
-
 export interface LocationUpdate {
   workerId: number;
   lat: number;

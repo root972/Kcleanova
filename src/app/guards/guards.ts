@@ -19,11 +19,20 @@ export const roleGuard = (allowedRoles: UserRole[]): CanActivateFn => {
     const authService = inject(AuthService);
     const router = inject(Router);
 
+    const isAuth = authService.isAuthenticated();
     const userRole = authService.userRole();
+
+    // Not authenticated => send to login
+    if (!isAuth) {
+      return router.createUrlTree(['/login']);
+    }
+
+    // Authorized role
     if (userRole && allowedRoles.includes(userRole)) {
       return true;
     }
 
-    return router.createUrlTree(['/dashboard']);
+    // Authenticated but wrong role => send to worker form as a safe default
+    return router.createUrlTree(['/form']);
   };
 };

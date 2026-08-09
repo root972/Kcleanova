@@ -1,3 +1,12 @@
+<div class="alerts-header">
+  <div>
+    <h3>Alerts</h3>
+    <p class="alert-subtext">Grace period: {{ geofenceConfig.gracePeriodSeconds }}s | Radius: {{ geofenceConfig.radiusMeters }}m</p>
+  </div>
+  <button class="sound-toggle" (click)="toggleSound()">
+    {{ soundEnabled ? 'Disable Sound Notifications' : 'Enable Sound Notifications' }}
+  </button>
+</div>
 <div class="alerts-container">
   @if (alerts.length > 0) {
     <div class="alert-box red">

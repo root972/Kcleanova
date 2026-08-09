@@ -48,3 +48,28 @@
   font-weight: 500;
   margin-bottom: 8px;
 }
+
+.alerts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.alert-subtext {
+  margin: 0;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.sound-toggle {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  cursor: pointer;
+}
+
+.sound-toggle:hover {
+  background: #f8fafc;
+}

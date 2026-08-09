@@ -1,57 +1,41 @@
-import { Component } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+import { LocationService } from '../services/location.service';
 
 @Component({
   selector: 'app-form',
   standalone: false,
   templateUrl: './form.html',
-  styleUrl: './form.css',
+  styleUrl: './form.css'
 })
-export class Form {
+export class Form implements OnInit, OnDestroy {
+  constructor(
+    public authService: AuthService,
+    public locationService: LocationService,
+    private router: Router
+  ) {}
 
-  // form fields
-  name = '';
-  email = '';
-  password = '';
-  city = '';
+  ngOnInit(): void {
+    const user = this.authService.currentUser() as any;
+    
+    // Fall back through possible worker ID fields on your user object
+    const workerId = user?.worker?.id || user?.workerId || user?.id;
 
-  // city autocomplete
-  cityResults: string[] = [];
-  showDropdown = false;
-
-  constructor(private http: HttpClient) {}
-
-  onCityInput() {
-    if (this.city.length < 3) {
-      this.cityResults = [];
-      this.showDropdown = false;
-      return;
+    if (workerId) {
+      this.locationService.startTracking(Number(workerId));
+    } else {
+      console.warn('Unable to start tracking: No valid workerId found on user context.');
     }
-
-
-    this.http.get<any>(
-  `https://nominatim.openstreetmap.org/search?city=${this.city}&format=json&limit=5`
-).subscribe(response => {
-  this.cityResults = response.map((c: any) => c.display_name);
-  this.showDropdown = true;
-});
-}
-
-  selectCity(cityName: string) {
-    this.city = cityName;
-    this.showDropdown = false;
-    this.cityResults = [];
   }
 
-  onSubmit() {
-  this.http.post('http://localhost:3000/submit', {
-    name: this.name,
-    email: this.email,
-    password: this.password,
-    city: this.city
-  }).subscribe((response: any) => {
-    console.log('Saved!', response);
-    alert('User saved successfully!');
-  });
-}
+  endShiftAndLogout(): void {
+    this.locationService.stopTracking();
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
+  ngOnDestroy(): void {
+    this.locationService.stopTracking();
+  }
 }

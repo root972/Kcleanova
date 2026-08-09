@@ -1,9 +1,38 @@
 <div class="map-wrapper">
   <div class="header">
-    <h2>📍 Live Worker Tracking Map</h2>
-    <span class="status-badge" [class.active]="isLive">
-      {{ isLive ? '🟢 Live Feed Connected' : '🟡 Waiting for Data...' }}
-    </span>
+    <div>
+      <h2>📍 Live Worker Tracking Map</h2>
+      <p class="subtext">{{ statusMessage }}</p>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap: wrap;">
+      <span class="status-badge" [class.active]="isLive">
+        {{ isLive ? '🟢 Live Feed Connected' : '🟡 Waiting for Data...' }}
+      </span>
+      <button class="focus-btn" (click)="focusLastWorker()" title="Focus last worker">Focus Worker</button>
+    </div>
   </div>
+  <div class="geofence-controls">
+    <div class="control-group">
+      <label>Site Latitude</label>
+      <input type="number" [(ngModel)]="geofenceConfig.siteLat" step="0.000001" />
+    </div>
+    <div class="control-group">
+      <label>Site Longitude</label>
+      <input type="number" [(ngModel)]="geofenceConfig.siteLng" step="0.000001" />
+    </div>
+    <div class="control-group">
+      <label>Radius (meters)</label>
+      <input type="number" [(ngModel)]="geofenceConfig.radiusMeters" min="50" />
+    </div>
+    <div class="control-group">
+      <label>Grace Period (s)</label>
+      <input type="number" [(ngModel)]="geofenceConfig.gracePeriodSeconds" min="0" />
+    </div>
+    <button class="save-btn" (click)="saveGeofence()" [disabled]="saveInProgress">
+      {{ saveInProgress ? 'Saving...' : 'Save Site Geofence' }}
+    </button>
+    <span class="save-message" *ngIf="saveMessage">{{ saveMessage }}</span>
+  </div>
+  <app-alerts-panel></app-alerts-panel>
   <div #mapContainer class="map-container"></div>
 </div>

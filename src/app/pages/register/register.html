@@ -1,7 +1,7 @@
 <div class="auth-container">
   <div class="auth-card">
     <h2>Create an Account</h2>
-    <p class="subtitle">Join as an Admin or Worker</p>
+    <p class="subtitle">Register a Worker account</p>
 
     <div *ngIf="errorMessage()" class="error-alert">
       {{ errorMessage() }}
@@ -48,13 +48,6 @@
         />
       </div>
 
-      <div class="form-group">
-        <label for="role">Account Role</label>
-        <select id="role" name="role" [(ngModel)]="role">
-          <option value="WORKER">Worker</option>
-          <option value="ADMIN">Admin</option>
-        </select>
-      </div>
 
       <button type="submit" [disabled]="isLoading()" class="btn-primary">
         {{ isLoading() ? 'Registering...' : 'Register' }}

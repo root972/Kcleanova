@@ -4,6 +4,8 @@ import { RouterModule, Routes } from '@angular/router';
 // Components
 import { Login } from './pages/login/login';
 import { Register } from './pages/register/register';
+import { ForgotPassword } from './pages/forgot-password';
+import { ResetPassword } from './pages/reset-password';
 import { WorkerMap } from './components/worker-map/worker-map';
 import { Form } from './form/form';
 
@@ -17,6 +19,8 @@ const routes: Routes = [
   // Public auth routes
   { path: 'login', component: Login },
   { path: 'register', component: Register },
+  { path: 'forgot-password', component: ForgotPassword },
+  { path: 'reset-password', component: ResetPassword },
 
   // Protected: Any logged-in user (WORKER or ADMIN)
   { 

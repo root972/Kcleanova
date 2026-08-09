@@ -11,12 +11,14 @@ import { WorkerMap } from './components/worker-map/worker-map';
 import { AlertsPanel } from './components/alerts-panel/alerts-panel';
 import { Login } from './pages/login/login';
 import { Register } from './pages/register/register';
+import { ForgotPassword } from './pages/forgot-password';
+import { ResetPassword } from './pages/reset-password';
 
 // Interceptor
 import { jwtInterceptor } from './interceptors/jwt-interceptor';
 
 @NgModule({
-  declarations: [App, Form, WorkerMap, AlertsPanel, Login, Register],
+  declarations: [App, Form, WorkerMap, AlertsPanel, Login, Register, ForgotPassword, ResetPassword],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [
     provideBrowserGlobalErrorListeners(),

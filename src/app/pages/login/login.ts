@@ -29,9 +29,14 @@ export class Login {
     this.errorMessage.set(null);
 
     this.authService.login({ email: this.email, password: this.password }).subscribe({
-      next: () => {
+      next: (res) => {
         this.isLoading.set(false);
-        this.router.navigate(['/map']);
+        const role = res.user?.role || this.authService.userRole();
+        if (role === 'ADMIN') {
+          this.router.navigate(['/map']);
+        } else {
+          this.router.navigate(['/form']);
+        }
       },
       error: (err) => {
         this.isLoading.set(false);

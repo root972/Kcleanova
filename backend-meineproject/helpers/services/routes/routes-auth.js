@@ -2,29 +2,33 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { PrismaClient } = require('@prisma/client');
 
 // Secret key used to sign and verify digital tokens (JWTs)
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_geofence_key_2026';
 
-// In-memory user database (will store user records for this session)
-const users = [];
+// Use Prisma for persistent user storage
+const prisma = new PrismaClient();
 
 /**
  * 1. REGISTRATION ENDPOINT
  * Route: POST /api/auth/register
- * Expects: { fullName, email, password, role }
+ * Expects: { fullName, email, password }
+ * Note: role is enforced server-side to 'WORKER' for all public registrations
  */
 router.post('/register', async (req, res) => {
   try {
-    const { fullName, email, password, role } = req.body;
+    const { fullName, email, password } = req.body;
 
     // Validation: Check for missing fields
     if (!email || !password || !fullName) {
       return res.status(400).json({ message: 'Full name, email, and password are required.' });
     }
 
+    const normalizedEmail = email.toLowerCase();
+
     // Check if a user with this email already exists
-    const existingUser = users.find(u => u.email === email.toLowerCase());
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existingUser) {
       return res.status(400).json({ message: 'User with this email already exists.' });
     }
@@ -32,17 +36,23 @@ router.post('/register', async (req, res) => {
     // Security: Hash the raw password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Build the user record
-    const newUser = {
-      id: users.length + 1,
-      fullName,
-      email: email.toLowerCase(),
-      password: hashedPassword,
-      role: role === 'ADMIN' ? 'ADMIN' : 'WORKER' // Default to WORKER if not specified
-    };
+    // Force role to WORKER for public registration
+    const created = await prisma.user.create({
+      data: {
+        name: fullName,
+        email: normalizedEmail,
+        password: hashedPassword,
+        role: 'WORKER',
+        worker: {
+          create: {
+            status: 'active'
+          }
+        }
+      },
+      include: { worker: true }
+    });
 
-    users.push(newUser);
-    console.log(`👤 New user registered: ${newUser.email} [Role: ${newUser.role}]`);
+    console.log(`👤 New WORKER registered: ${created.email} [id:${created.id}]`);
 
     res.status(201).json({ message: 'User registered successfully.' });
   } catch (err) {
@@ -60,8 +70,10 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find the user by email
-    const user = users.find(u => u.email === (email || '').toLowerCase());
+    const normalizedEmail = (email || '').toLowerCase();
+
+    // Find the user by email (include worker relation)
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail }, include: { worker: true } });
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password.' });
     }
@@ -72,13 +84,17 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
+    // Construct worker object if role is WORKER
+    const workerData = user.role === 'WORKER' ? (user.worker || { id: user.id, userId: user.id, status: 'active' }) : undefined;
+
     // Generate JWT token containing key user information and role
     const token = jwt.sign(
       { 
         userId: user.id, 
         email: user.email, 
         role: user.role, 
-        fullName: user.fullName 
+        fullName: user.name,
+        workerId: workerData?.id
       },
       JWT_SECRET,
       { expiresIn: '12h' }
@@ -91,14 +107,107 @@ router.post('/login', async (req, res) => {
       token,
       user: {
         id: user.id,
-        fullName: user.fullName,
+        fullName: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        worker: workerData // Attaches worker object so Angular can read user.worker.id
       }
     });
   } catch (err) {
     console.error('Login Error:', err);
     res.status(500).json({ message: 'Server error during login.' });
+  }
+});
+
+
+// ---------------------------
+// FORGOT / RESET PASSWORD
+// ---------------------------
+const crypto = require('crypto');
+let nodemailer;
+try {
+  nodemailer = require('nodemailer');
+} catch (e) {
+  nodemailer = null;
+}
+
+// POST /api/auth/forgot-password
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email is required.' });
+
+    const normalizedEmail = (email || '').toLowerCase();
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+
+    // Always respond success to avoid user enumeration
+    if (!user) {
+      console.log(`Password reset requested for unknown email: ${normalizedEmail}`);
+      return res.json({ message: 'If an account exists for that email, a reset link was sent.' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await prisma.user.update({ where: { id: user.id }, data: { resetPasswordToken: token, resetPasswordExpires: expires } });
+
+    const frontendHost = process.env.FRONTEND_URL || 'http://localhost:4200';
+    const resetUrl = `${frontendHost}/reset-password?token=${token}`;
+
+    // Send email if transporter is configured via env vars, otherwise log the link for dev
+    if (nodemailer && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
+          secure: process.env.SMTP_SECURE === 'true',
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+          }
+        });
+
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || 'no-reply@example.com',
+          to: user.email,
+          subject: 'Password Reset Request',
+          text: `You requested a password reset. Use the following link (valid one hour): ${resetUrl}`,
+          html: `<p>You requested a password reset. Click the link below to reset your password (valid one hour):</p><p><a href="${resetUrl}">${resetUrl}</a></p>`
+        });
+        console.log(`Password reset email sent to ${user.email}`);
+      } catch (mailErr) {
+        console.error('Failed to send reset email:', mailErr);
+        console.log('Reset link:', resetUrl);
+      }
+    } else {
+      console.log('Password reset link (dev):', resetUrl);
+    }
+
+    return res.json({ message: 'If an account exists for that email, a reset link was sent.' });
+  } catch (err) {
+    console.error('Forgot Password Error:', err);
+    return res.status(500).json({ message: 'Server error.' });
+  }
+});
+
+// POST /api/auth/reset-password
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) return res.status(400).json({ message: 'Token and newPassword are required.' });
+
+    const user = await prisma.user.findFirst({ where: { resetPasswordToken: token, resetPasswordExpires: { gt: new Date() } } });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired token.' });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({ where: { id: user.id }, data: { password: hashed, resetPasswordToken: null, resetPasswordExpires: null } });
+
+    return res.json({ message: 'Password has been reset successfully.' });
+  } catch (err) {
+    console.error('Reset Password Error:', err);
+    return res.status(500).json({ message: 'Server error.' });
   }
 });
 

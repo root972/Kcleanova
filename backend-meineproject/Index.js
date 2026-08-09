@@ -45,13 +45,106 @@ const io = new Server(server, {
 
 const prisma = new PrismaClient();
 
-// Geofence configuration
-const SITE_CENTER = { lat: 48.2082, lng: 16.3738 };
-const MAX_RADIUS_METERS = 250;
+// Dynamic geofence configuration defaults and runtime state
+const DEFAULT_GEOFENCE_CONFIG = {
+  siteLat: 48.2082,
+  siteLng: 16.3738,
+  radiusMeters: 250,
+  gracePeriodSeconds: 30
+};
+let geofenceConfig = { ...DEFAULT_GEOFENCE_CONFIG };
+
+(async () => {
+  try {
+    const existingAdmin = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+    if (!existingAdmin) {
+      const adminEmail = process.env.ADMIN_EMAIL;
+      const adminPassword = process.env.ADMIN_PASSWORD;
+      if (adminEmail && adminPassword) {
+        const hashed = await bcrypt.hash(adminPassword, 10);
+        await prisma.user.create({
+          data: {
+            name: 'Administrator',
+            email: adminEmail.toLowerCase(),
+            password: hashed,
+            role: 'ADMIN'
+          }
+        });
+        console.log('🔐 Seeded ADMIN user from environment variables.');
+      } else {
+        console.warn('ADMIN_EMAIL or ADMIN_PASSWORD not set in environment; skipping admin seeding.');
+      }
+    } else {
+      console.log('Admin user already exists; skipping seeding.');
+    }
+  } catch (err) {
+    console.error('Error while seeding admin user:', err);
+  }
+})();
+
+// Load or initialize geofence settings from the database
+(async () => {
+  try {
+    const existingGeofence = await prisma.geofence.findFirst();
+    if (existingGeofence) {
+      geofenceConfig = existingGeofence;
+      console.log('Loaded geofence settings from database.');
+    } else {
+      const createdGeofence = await prisma.geofence.create({ data: DEFAULT_GEOFENCE_CONFIG });
+      geofenceConfig = createdGeofence;
+      console.log('Created default geofence settings.');
+    }
+  } catch (err) {
+    console.error('Error while loading geofence settings:', err);
+  }
+})();
 
 // Root route
 app.get('/', (req, res) => {
   res.json({ message: 'Backend API is live and running!' });
+});
+
+// ==========================================
+// 0. GEOFENCE SETTINGS ROUTES
+// ==========================================
+app.get('/api/geofence', async (req, res) => {
+  try {
+    res.json(geofenceConfig);
+  } catch (error) {
+    console.error('Error fetching geofence config:', error);
+    res.status(500).json({ error: 'Failed to fetch geofence configuration.' });
+  }
+});
+
+app.put('/api/geofence', async (req, res) => {
+  try {
+    const { siteLat, siteLng, radiusMeters, gracePeriodSeconds } = req.body;
+    if (siteLat === undefined || siteLng === undefined || radiusMeters === undefined || gracePeriodSeconds === undefined) {
+      return res.status(400).json({ error: 'All geofence settings are required.' });
+    }
+
+    if (!geofenceConfig.id) {
+        return res.status(503).json({ error: 'Geofence configuration not initialized yet.' });
+      }
+
+      const updatedConfig = await prisma.geofence.update({
+        where: { id: geofenceConfig.id },
+        data: {
+          siteLat: parseFloat(siteLat),
+          siteLng: parseFloat(siteLng),
+          radiusMeters: parseInt(radiusMeters, 10),
+          gracePeriodSeconds: parseInt(gracePeriodSeconds, 10)
+        }
+      });
+
+    geofenceConfig = updatedConfig;
+    io.emit('geofence:updated', geofenceConfig);
+    console.log('Geofence configuration updated:', geofenceConfig);
+    res.json(geofenceConfig);
+  } catch (error) {
+    console.error('Error updating geofence config:', error);
+    res.status(500).json({ error: 'Failed to update geofence configuration.', details: error.message });
+  }
 });
 
 // ==========================================
@@ -241,12 +334,18 @@ io.on('connection', (socket) => {
     const workerId = parseInt(data.workerId);
     const timestamp = new Date();
 
-    const distance = calculateDistance(SITE_CENTER.lat, SITE_CENTER.lng, lat, lng);
+    if (isNaN(workerId) || lat === undefined || lng === undefined) {
+      console.warn('Invalid location update payload received:', data);
+      return;
+    }
+
+    const distance = calculateDistance(geofenceConfig.siteLat, geofenceConfig.siteLng, lat, lng);
     const roundedDistance = Math.round(distance);
 
     console.log(`Received location for Worker #${workerId}: Lat ${lat}, Lng ${lng} (${roundedDistance}m away)`);
 
-    io.emit('location:update', {
+    // ✅ Broadcast using 'location:updated' to match Angular LocationService
+    io.emit('location:updated', {
       workerId,
       lat,
       lng,
@@ -256,7 +355,7 @@ io.on('connection', (socket) => {
       timestamp
     });
 
-    if (distance > MAX_RADIUS_METERS) {
+    if (distance > geofenceConfig.radiusMeters) {
       console.warn(`GEOFENCE BREACH: Worker #${workerId} is ${roundedDistance}m away from perimeter.`);
       try {
         await sendGeofencePushAlert(workerId, roundedDistance);
@@ -270,8 +369,8 @@ io.on('connection', (socket) => {
       await prisma.location.create({
         data: {
           workerId,
-          latitude: lat,
-          longitude: lng
+          latitude: parseFloat(lat),
+          longitude: parseFloat(lng)
         }
       });
       console.log(`Saved location for Worker #${workerId} to DB.`);
