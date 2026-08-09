@@ -1,19 +1,21 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { PushNotificationService } from './services/push-notification';
- 
+import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from './services/auth.service';
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.html',
-  standalone: false,
-  styleUrl: './app.css'
+  styleUrl: './app.css',
+  standalone: false
 })
-export class App implements OnInit {
-  protected readonly title = signal('Meineangularproject');
- 
-  constructor(private pushService: PushNotificationService) {}
- 
-  ngOnInit(): void {
-    this.pushService.syncSubscription();
+export class App {
+  constructor(
+    public authService: AuthService,
+    private router: Router
+  ) {}
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }
- 

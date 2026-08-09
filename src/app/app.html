@@ -1,7 +1,18 @@
-<div class="dashboard-layout">
-  <!-- 🚨 ALERTS PANEL (Must be here to listen for events & render alerts) -->
-  <app-alerts-panel></app-alerts-panel>
+<!-- Top Navigation Header Bar -->
+<header style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; background: #1e293b; color: #ffffff;">
+  <h2 style="margin: 0; font-size: 1.25rem;">Geo Tracking Portal</h2>
 
-  <!-- 🗺️ LIVE WORKER MAP -->
-  <app-worker-map></app-worker-map>
-</div>
+  @if (authService.isAuthenticated()) {
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <span>Welcome, <strong>{{ authService.currentUser()?.fullName }}</strong> ({{ authService.userRole() }})</span>
+      <button (click)="logout()" style="padding: 0.5rem 1rem; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        Logout
+      </button>
+    </div>
+  }
+</header>
+
+<!-- Router Outlet: Angular loads Login, Register, or WorkerMap here dynamically based on URL -->
+<main style="padding: 2rem;">
+  <router-outlet></router-outlet>
+</main>

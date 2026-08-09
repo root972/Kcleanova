@@ -1,0 +1,68 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>Create an Account</h2>
+    <p class="subtitle">Join as an Admin or Worker</p>
+
+    <div *ngIf="errorMessage()" class="error-alert">
+      {{ errorMessage() }}
+    </div>
+
+    <div *ngIf="successMessage()" class="success-alert">
+      {{ successMessage() }}
+    </div>
+
+    <form (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="fullName">Full Name</label>
+        <input 
+          type="text" 
+          id="fullName" 
+          name="fullName" 
+          [(ngModel)]="fullName" 
+          placeholder="e.g. John Doe" 
+          required 
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          [(ngModel)]="email" 
+          placeholder="e.g. user@test.com" 
+          required 
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          [(ngModel)]="password" 
+          placeholder="••••••••" 
+          required 
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="role">Account Role</label>
+        <select id="role" name="role" [(ngModel)]="role">
+          <option value="WORKER">Worker</option>
+          <option value="ADMIN">Admin</option>
+        </select>
+      </div>
+
+      <button type="submit" [disabled]="isLoading()" class="btn-primary">
+        {{ isLoading() ? 'Registering...' : 'Register' }}
+      </button>
+    </form>
+
+    <p class="footer-text">
+      Already have an account? <a routerLink="/login">Log in here</a>
+    </p>
+  </div>
+</div>

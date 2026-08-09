@@ -1,4 +1,5 @@
 require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
@@ -11,6 +12,7 @@ const pushRoutes = require('./helpers/services/routes/push.routes');
 const { calculateDistance } = require('./helpers/geofence');
 const { sendGeofencePushAlert } = require('./helpers/services/push.service');
 
+// 1. INITIALIZE EXPRESS APP FIRST
 const app = express();
 const server = http.createServer(app);
 
@@ -21,11 +23,16 @@ const allowedOrigins = [
   'http://localhost:4200'
 ];
 
-// Configure Express CORS
+// 2. MIDDLEWARE (Parsing JSON & CORS)
+app.use(express.json()); // Parses incoming JSON bodies
 app.use(cors({
   origin: allowedOrigins,
   credentials: true
 }));
+
+// 3. MOUNT ROUTE MODULES
+app.use('/api/auth', require('./helpers/services/routes/routes-auth'));
+app.use('/api', pushRoutes);
 
 // Configure Socket.io CORS
 const io = new Server(server, {
@@ -41,14 +48,6 @@ const prisma = new PrismaClient();
 // Geofence configuration
 const SITE_CENTER = { lat: 48.2082, lng: 16.3738 };
 const MAX_RADIUS_METERS = 250;
-
-// ==========================================
-// MIDDLEWARE & API ROUTES
-// ==========================================
-app.use(express.json());
-
-// Register Push Notification API Route (/api/subscribe)
-app.use('/api', pushRoutes);
 
 // Root route
 app.get('/', (req, res) => {
