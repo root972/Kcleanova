@@ -8,6 +8,7 @@
       <span class="status-badge" [class.active]="isLive">
         {{ isLive ? '🟢 Live Feed Connected' : '🟡 Waiting for Data...' }}
       </span>
+      <button class="focus-btn" (click)="locateBoundary()" title="Locate geofence boundary">🎯 Locate Boundary</button>
       <button class="focus-btn" (click)="focusLastWorker()" title="Focus last worker">Focus Worker</button>
     </div>
   </div>
@@ -34,5 +35,6 @@
     <span class="save-message" *ngIf="saveMessage">{{ saveMessage }}</span>
   </div>
   <app-alerts-panel></app-alerts-panel>
+  <app-breach-log-panel></app-breach-log-panel>
   <div #mapContainer class="map-container"></div>
 </div>

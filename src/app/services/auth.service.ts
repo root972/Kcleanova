@@ -1,13 +1,15 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, Injector, signal, computed, inject } from '@angular/core';
+import { LocationService } from './location.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { AuthResponse, LoginPayload, RegisterPayload, User, UserRole } from '../models/user.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'http://localhost:3000/api/auth';
+  private readonly API_URL = `${environment.apiUrl}/api/auth`;
   private readonly TOKEN_KEY = 'geo_auth_token';
   private readonly USER_KEY = 'geo_auth_user';
 
@@ -18,6 +20,8 @@ export class AuthService {
   isAuthenticated = computed(() => !!this.currentUser());
   userRole = computed<UserRole | null>(() => this.currentUser()?.role || null);
   isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
+
+  private readonly injector = inject(Injector);
 
   constructor(private http: HttpClient) {}
 
@@ -47,6 +51,11 @@ export class AuthService {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     this.currentUser.set(null);
+    try {
+      this.injector.get(LocationService).disconnectSocket();
+    } catch {
+      // LocationService may not be instantiated yet
+    }
   }
 
   getToken(): string | null {
@@ -57,6 +66,11 @@ export class AuthService {
     localStorage.setItem(this.TOKEN_KEY, token);
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     this.currentUser.set(user);
+    try {
+      this.injector.get(LocationService).refreshSocketConnection();
+    } catch {
+      // LocationService may not be instantiated yet
+    }
   }
 
   private getStoredUser(): User | null {

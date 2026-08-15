@@ -32,15 +32,18 @@ model User {
 
 // 4. Worker Table
 model Worker {
-  id        Int        @id @default(autoincrement())
-  userId    Int        @unique
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  phone     String?
-  status    String     @default("inactive")
+  id                      Int        @id @default(autoincrement())
+  userId                  Int        @unique
+  user                    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone                   String?
+  status                  String     @default("inactive")
+  totalBreaches           Int        @default(0)
+  totalDurationOutsideSec Int        @default(0)
 
-  jobs      Job[]
-  shifts    Shift[]
-  locations Location[]
+  jobs       Job[]
+  shifts     Shift[]
+  locations  Location[]
+  breachLogs BreachLog[]
 }
 
 // 5. Job Table
@@ -57,12 +60,14 @@ model Job {
 
 // 6. Shift Table
 model Shift {
-  id        Int       @id @default(autoincrement())
-  workerId  Int
-  worker    Worker    @relation(fields: [workerId], references: [id])
-  startTime DateTime  @default(now())
-  endTime   DateTime?
-  status    String    @default("active")
+  id                      Int       @id @default(autoincrement())
+  workerId                Int
+  worker                  Worker    @relation(fields: [workerId], references: [id])
+  startTime               DateTime  @default(now())
+  endTime                 DateTime?
+  status                  String    @default("active")
+  totalBreaches           Int       @default(0)
+  totalDurationOutsideSec Int       @default(0)
 }
 
 // 7. Location Table
@@ -83,4 +88,28 @@ model Geofence {
   gracePeriodSeconds Int
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+}
+
+// 8. Push Subscriptions persisted so web-push survives restarts
+model BreachLog {
+  id          Int       @id @default(autoincrement())
+  workerId    Int
+  worker      Worker    @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  shiftId     Int?
+  workerName  String?
+  startTime   DateTime  @default(now())
+  endTime     DateTime?
+  breachedAt  DateTime  @default(now())
+  resolvedAt  DateTime?
+  durationSec Int?
+  maxDistance Float     @default(0)
+  status      String    @default("ACTIVE")
+  createdAt   DateTime  @default(now())
+}
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  endpoint  String   @unique
+  keys      Json
+  createdAt DateTime @default(now())
 }

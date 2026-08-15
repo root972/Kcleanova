@@ -1,23 +1,65 @@
 <div class="alerts-header">
   <div>
-    <h3>Alerts</h3>
-    <p class="alert-subtext">Grace period: {{ geofenceConfig.gracePeriodSeconds }}s | Radius: {{ geofenceConfig.radiusMeters }}m</p>
+    <h3>Geofence Alerts</h3>
+    <p class="alert-subtext">
+      Radius: {{ geofenceConfig.radiusMeters }}m |
+      Server-side breach detection active
+    </p>
   </div>
-  <button class="sound-toggle" (click)="toggleSound()">
-    {{ soundEnabled ? 'Disable Sound Notifications' : 'Enable Sound Notifications' }}
+  <button class="sound-toggle" (click)="toggleAudioAlerts()">
+    {{ audioAlertsEnabled ? '🔊 Audio On' : '🔇 Audio Off' }}
   </button>
 </div>
+
 <div class="alerts-container">
-  @if (alerts.length > 0) {
-    <div class="alert-box red">
-      <button (click)="clearAlerts()" class="clear-btn">Clear Alerts</button>
-      @for (alert of alerts; track $index) {
-        <p class="alert-item">{{ alert }}</p>
-      }
-    </div>
-  } @else {
+  @if (workerAlerts.length === 0) {
     <div class="alert-box green">
-      <p>✅ All workers are within the construction site boundary.</p>
+      <p>✅ No tracked workers yet. Alerts will appear when workers connect.</p>
+    </div>
+  } @else if (!hasActiveOutsideWorker) {
+    <div class="alert-box green">
+      <p>✅ All workers are inside the construction site boundary.</p>
+    </div>
+  }
+
+  @for (worker of workerAlerts; track worker.workerId) {
+    <div class="worker-alert-card" [class.outside]="worker.status === 'OUTSIDE'" [class.inside]="worker.status === 'INSIDE'">
+      <div class="card-header">
+        <div>
+          <strong>{{ worker.workerName }}</strong>
+          <span class="worker-id">#{{ worker.workerId }}</span>
+        </div>
+        <span class="status-pill" [class.outside]="worker.status === 'OUTSIDE'" [class.inside]="worker.status === 'INSIDE'">
+          {{ worker.status === 'OUTSIDE' ? 'Outside' : 'Inside' }}
+        </span>
+      </div>
+
+      <div class="card-metrics">
+        <div class="metric">
+          <span class="metric-label">Total Breaches</span>
+          <span class="metric-value">{{ worker.totalBreaches }}</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Current Time Outside</span>
+          <span class="metric-value timer">{{ getCurrentOutsideDuration(worker) }}</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Cumulative Time Outside</span>
+          <span class="metric-value">{{ getCumulativeOutsideDuration(worker) }}</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Distance</span>
+          <span class="metric-value">{{ worker.lastDistance }} m</span>
+        </div>
+      </div>
+
+      @if (worker.status === 'OUTSIDE') {
+        <div class="card-actions">
+          <button class="mute-btn" (click)="acknowledgeAlarm()" [disabled]="alarmAcknowledged">
+            {{ alarmAcknowledged ? 'Alarm Acknowledged' : 'Acknowledge / Mute Sound' }}
+          </button>
+        </div>
+      }
     </div>
   }
 </div>

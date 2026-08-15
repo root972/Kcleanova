@@ -1,3 +1,12 @@
+<div class="shift-banner">
+  Keep this page open during your shift. Do not switch apps or lock screen.
+</div>
+
+<div class="wake-lock-status" [class.warning]="wakeLockWarning" [class.active]="wakeLockActive && !wakeLockWarning">
+  <span *ngIf="wakeLockActive && !wakeLockWarning">Screen wake lock active — tracking protected.</span>
+  <span *ngIf="wakeLockWarning">⚠️ Wake lock unavailable. Keep this tab visible or tracking may pause.</span>
+</div>
+
 <div class="status-container">
   <div class="status-card">
     <div class="badge-container">
@@ -13,6 +22,7 @@
 
     <div class="info-box">
       <p>📍 <strong>Status:</strong> Broadcasting GPS Coordinates</p>
+      <p>💓 <strong>Heartbeat:</strong> HTTP fallback every 30 seconds</p>
     </div>
 
     <button (click)="endShiftAndLogout()" class="btn-end-shift">

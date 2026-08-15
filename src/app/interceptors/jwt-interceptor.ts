@@ -6,15 +6,13 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
 
-  // Automatically attach Bearer token to all outgoing API requests
+  const headers: Record<string, string> = {
+    'ngrok-skip-browser-warning': 'true'
+  };
+
   if (token) {
-    const cloned = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    return next(cloned);
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
-  return next(req);
+  return next(req.clone({ setHeaders: headers }));
 };

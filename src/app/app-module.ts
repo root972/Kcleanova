@@ -9,6 +9,7 @@ import { App } from './app';
 import { Form } from './form/form';
 import { WorkerMap } from './components/worker-map/worker-map';
 import { AlertsPanel } from './components/alerts-panel/alerts-panel';
+import { BreachLogPanel } from './components/breach-log-panel/breach-log-panel';
 import { Login } from './pages/login/login';
 import { Register } from './pages/register/register';
 import { ForgotPassword } from './pages/forgot-password';
@@ -19,7 +20,7 @@ import { jwtInterceptor } from './interceptors/jwt-interceptor';
 
 @NgModule({
   declarations: [App, Form, WorkerMap, AlertsPanel, Login, Register, ForgotPassword, ResetPassword],
-  imports: [BrowserModule, FormsModule, AppRoutingModule],
+  imports: [BrowserModule, FormsModule, AppRoutingModule, BreachLogPanel],
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([jwtInterceptor])),

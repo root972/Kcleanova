@@ -1,3 +1,35 @@
+.shift-banner {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #fef3c7;
+  border-bottom: 1px solid #f59e0b;
+  color: #92400e;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.wake-lock-status {
+  text-align: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  background: #f8fafc;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.wake-lock-status.active {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.wake-lock-status.warning {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
 .status-container {
   display: flex;
   justify-content: center;

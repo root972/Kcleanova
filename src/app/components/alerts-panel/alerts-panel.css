@@ -1,52 +1,20 @@
 .alerts-container {
   margin-bottom: 16px;
+  display: grid;
+  gap: 12px;
 }
 
 .alert-box {
   border-radius: 8px;
   padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* ✅ Green = all clear */
 .alert-box.green {
   background: #f0fdf4;
   border-left: 4px solid #16a34a;
   color: #15803d;
   font-weight: 500;
-}
-
-/* 🚨 Red = out of bounds alerts */
-.alert-box.red {
-  background: #fef2f2;
-  border-left: 4px solid #ef4444;
-  color: #991b1b;
-}
-
-.clear-btn {
-  background: #fee2e2;
-  border: 1px solid #ef4444;
-  color: #991b1b;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  margin-bottom: 12px;
-  display: block;
-}
-
-.clear-btn:hover {
-  background: #fecaca;
-}
-
-.alert-item {
-  background: #fff;
-  border-left: 4px solid #ef4444;
-  color: #991b1b;
-  padding: 10px 12px;
-  border-radius: 4px;
-  font-weight: 500;
-  margin-bottom: 8px;
 }
 
 .alerts-header {
@@ -72,4 +40,102 @@
 
 .sound-toggle:hover {
   background: #f8fafc;
+}
+
+.worker-alert-card {
+  border-radius: 10px;
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.worker-alert-card.outside {
+  border-left: 4px solid #ef4444;
+  background: #fef2f2;
+}
+
+.worker-alert-card.inside {
+  border-left: 4px solid #16a34a;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.worker-id {
+  margin-left: 8px;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.status-pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-pill.outside {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.status-pill.inside {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.card-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.metric {
+  display: grid;
+  gap: 4px;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.metric-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.metric-value.timer {
+  font-family: Consolas, Monaco, monospace;
+  color: #b45309;
+}
+
+.card-actions {
+  margin-top: 12px;
+}
+
+.mute-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ef4444;
+  background: #fff;
+  color: #b91c1c;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.mute-btn:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.mute-btn:disabled {
+  opacity: 0.65;
+  cursor: default;
 }

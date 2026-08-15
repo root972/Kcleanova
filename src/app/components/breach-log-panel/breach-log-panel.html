@@ -1,0 +1,39 @@
+<section class="breach-log-panel">
+  <div class="title-row">
+    <h3>🚨 Breach History & Duration</h3>
+    <span *ngIf="isLoading" class="loading-text">Loading breach logs...</span>
+  </div>
+
+  <div class="table-wrapper" *ngIf="breachLogs.length > 0; else emptyState">
+    <table>
+      <thead>
+        <tr>
+          <th>Worker</th>
+          <th>Start Time</th>
+          <th>Duration</th>
+          <th>Max Distance</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of breachLogs">
+          <td>{{ log.workerName || 'Worker #' + log.workerId }}</td>
+          <td>{{ formatTimestamp(log.startTime) }}</td>
+          <td>{{ formatDuration(log) }}</td>
+          <td>{{ formatDistance(log.maxDistance) }}</td>
+          <td>
+            <span class="status-badge" [class.active]="isActive(log)" [class.resolved]="!isActive(log)">
+              {{ isActive(log) ? '🔴 Active' : '🟢 Resolved' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #emptyState>
+    <div class="empty-state">
+      <p>No breach history yet. Active workers will appear here once a breach occurs.</p>
+    </div>
+  </ng-template>
+</section>
