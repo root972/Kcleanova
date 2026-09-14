@@ -15,6 +15,8 @@ type GeofenceStatus = 'INSIDE' | 'OUTSIDE';
 
 interface WorkerAlertState {
   workerId: number;
+  name: string;
+  email: string;
   workerName: string;
   status: GeofenceStatus;
   totalBreaches: number;
@@ -100,9 +102,12 @@ export class AlertsPanel implements OnInit, OnDestroy {
         workers.forEach((worker) => {
           if (!worker?.id) return;
           const name = worker?.user?.name || `Worker ${worker.id}`;
+          const email = worker?.user?.email || '';
           this.workerNames.set(worker.id, name);
           this.workerStates.set(worker.id, {
             workerId: worker.id,
+            name,
+            email,
             workerName: name,
             status: 'INSIDE',
             totalBreaches: worker.totalBreaches ?? 0,
@@ -159,6 +164,8 @@ export class AlertsPanel implements OnInit, OnDestroy {
 
     const created: WorkerAlertState = {
       workerId,
+      name: workerName || this.workerNames.get(workerId) || `Worker ${workerId}`,
+      email: '',
       workerName: workerName || this.workerNames.get(workerId) || `Worker ${workerId}`,
       status: 'INSIDE',
       totalBreaches: 0,

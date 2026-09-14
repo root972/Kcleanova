@@ -1,24 +1,233 @@
 
 .shifts-container {
-    background-color: #dddada;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
- padding: 40px;
-    margin: 30px auto;
-
+  max-width: 1180px;
+  margin: 30px auto;
+  padding: 28px;
+  color: #172033;
+  background: #f7f8fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
+
+.shifts-header,
+.detail-heading,
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.shifts-header {
+  margin-bottom: 24px;
+}
+
+.shifts-header h2,
+.detail-heading h3,
+.section-heading h3 {
+  margin: 0;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.search-field {
+  display: grid;
+  gap: 6px;
+  min-width: min(320px, 100%);
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.search-field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #172033;
+  font: inherit;
+  font-weight: 400;
+}
+
+.search-field input:focus {
+  outline: 3px solid rgba(37, 99, 235, 0.15);
+  border-color: #2563eb;
+}
+
+.worker-list {
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.section-heading {
+  margin-bottom: 14px;
+}
+
+.section-heading span,
+.record-count,
+.eyebrow {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.worker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.worker-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #172033;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+.worker-card:hover,
+.worker-card.selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  transform: translateY(-1px);
+}
+
+.worker-avatar {
+  display: grid;
+  flex: 0 0 36px;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 800;
+}
+
+.worker-card-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.worker-card-copy span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.worker-card-arrow {
+  margin-left: auto;
+  color: #2563eb;
+  font-size: 20px;
+}
+
+.empty-workers,
+.no-data {
+  color: #64748b;
+  text-align: center;
+}
+
+.detail-panel {
+  margin-top: 20px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.detail-heading {
+  margin-bottom: 16px;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .shifts-table th,
 .shifts-table td {
-  padding-left: 24px;   /* Increases space on the left side of text */
-  padding-right: 24px;  /* Increases space on the right side of text */
-  text-align: left;     /* Keeps text cleanly aligned */
+  padding: 12px 16px;
+  text-align: left;
+}
+
+.shifts-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.shifts-table th {
+  color: #475569;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f8fafc;
+}
+
+.shifts-table td {
+  border-top: 1px solid #eef2f7;
 }
 
 .pagination-controls {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px; /* Adds clean uniform space between items */
+  gap: 16px;
   padding-top: 16px;
   border-top: 1px solid #f1f5f9;
+}
+
+.pagination-controls button {
+  padding: 9px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #fff;
+  color: #172033;
+  cursor: pointer;
+}
+
+.pagination-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+@media (max-width: 720px) {
+  .shifts-container {
+    margin: 12px;
+    padding: 16px;
+  }
+
+  .shifts-header,
+  .detail-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .search-field {
+    min-width: 0;
+  }
+
+  .detail-panel {
+    overflow-x: auto;
+  }
+
+  .shifts-table {
+    min-width: 650px;
+  }
 }

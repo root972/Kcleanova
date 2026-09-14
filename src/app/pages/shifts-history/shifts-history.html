@@ -1,67 +1,106 @@
 <div class="shifts-container">
   <div class="shifts-header">
-    <h2>Shift History</h2>
-    <p class="subtitle">Worker ID: {{ workerId }}</p>
+    <div>
+      <h2>Shift History</h2>
+      <p class="subtitle">Select a worker to inspect their shifts</p>
+    </div>
+    <label class="search-field">
+      <span>Search workers</span>
+      <input
+        type="search"
+        [(ngModel)]="searchTerm"
+        placeholder="Name or worker ID"
+        aria-label="Search workers by name or ID">
+    </label>
   </div>
 
-  <!-- 1. LOADING STATE -->
-  @if (shiftsHistoryService.isLoading()) {
-    <div class="loading-spinner">
-      <p>Loading shifts...</p>
+  <section class="worker-list" aria-label="Workers">
+    <div class="section-heading">
+      <h3>Workers</h3>
+      <span>{{ filteredWorkers.length }} shown</span>
     </div>
-  }
 
-  <!-- 2. DATA TABLE & PAGINATION -->
-  @if (!shiftsHistoryService.isLoading()) {
-    @if (shiftsHistoryService.shifts().length > 0) {
-      <table class="shifts-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Location</th>
-            <th>Start Time</th>
-            <th>End Time</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Dynamic iteration with track for performance optimization -->
-          @for (shift of shiftsHistoryService.shifts(); track shift.id) {
-            <tr>
-              <td>{{ shift.id }}</td>
-              <td>{{ shift.location }}</td>
-              <td>{{ shift.startTime | date: 'short' }}</td>
-              <td>{{ shift.endTime | date: 'short' }}</td>
-              <td>{{ shift.notes || 'N/A' }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-
-      <!-- PAGINATION CONTROLS -->
-      <div class="pagination-controls">
-        <button 
-          (click)="prevPage()" 
-          [disabled]="currentSkip === 0">
-          Previous
-        </button>
-
-        <span>
-          Page {{ (currentSkip / limit) + 1 }} 
-          of {{ Math.ceil(shiftsHistoryService.totalCount() / limit) || 1 }}
-        </span>
-
-        <button 
-          (click)="nextPage()" 
-          [disabled]="currentSkip + limit >= shiftsHistoryService.totalCount()">
-          Next
-        </button>
+    @if (filteredWorkers.length > 0) {
+      <div class="worker-grid">
+        @for (worker of filteredWorkers; track worker.id) {
+          <button
+            type="button"
+            class="worker-card"
+            [class.selected]="worker.id === workerId"
+            (click)="selectWorker(worker.id)">
+            <span class="worker-avatar">{{ worker.name.charAt(0).toUpperCase() }}</span>
+            <span class="worker-card-copy">
+              <strong>{{ worker.name }}</strong>
+              <span>Worker #{{ worker.id }}</span>
+            </span>
+            <span class="worker-card-arrow" aria-hidden="true">&rarr;</span>
+          </button>
+        }
       </div>
     } @else {
-      <!-- EMPTY STATE -->
-      <div class="no-data">
-        <p>No shift records found for this worker.</p>
+      <p class="empty-workers">No workers match your search.</p>
+    }
+  </section>
+
+  <section class="detail-panel" aria-label="Selected worker shift history">
+    <div class="detail-heading">
+      <div>
+        <span class="eyebrow">Selected worker</span>
+        <h3>Worker #{{ workerId }}</h3>
+      </div>
+      <span class="record-count">{{ shiftsHistoryService.totalCount() }} records</span>
+    </div>
+
+    @if (shiftsHistoryService.isLoading()) {
+      <div class="loading-spinner">
+        <p>Loading shifts...</p>
       </div>
     }
-  }
+
+    @if (!shiftsHistoryService.isLoading()) {
+      @if (shiftsHistoryService.shifts().length > 0) {
+        <table class="shifts-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Location</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (shift of shiftsHistoryService.shifts(); track shift.id) {
+              <tr>
+                <td>{{ shift.id }}</td>
+                <td>{{ shift.location }}</td>
+                <td>{{ shift.startTime | date: 'short' }}</td>
+                <td>{{ shift.endTime | date: 'short' }}</td>
+                <td>{{ shift.notes || 'N/A' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="pagination-controls">
+          <button (click)="prevPage()" [disabled]="currentSkip === 0">Previous</button>
+
+          <span>
+            Page {{ (currentSkip / limit) + 1 }}
+            of {{ Math.ceil(shiftsHistoryService.totalCount() / limit) || 1 }}
+          </span>
+
+          <button
+            (click)="nextPage()"
+            [disabled]="currentSkip + limit >= shiftsHistoryService.totalCount()">
+            Next
+          </button>
+        </div>
+      } @else {
+        <div class="no-data">
+          <p>No shift records found for this worker.</p>
+        </div>
+      }
+    }
+  </section>
 </div>

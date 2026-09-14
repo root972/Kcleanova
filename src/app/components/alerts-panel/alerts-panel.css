@@ -43,6 +43,8 @@
 }
 
 .worker-alert-card {
+  display: flex;
+  flex-direction: column;
   border-radius: 10px;
   padding: 14px 16px;
   border: 1px solid #e5e7eb;
@@ -64,6 +66,24 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+}
+
+.card-header > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.worker-name-link {
+  color: #0f172a;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.worker-name-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
 }
 
 .worker-id {
@@ -119,6 +139,35 @@
 
 .card-actions {
   margin-top: 12px;
+}
+
+.history-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 2px 0 16px;
+}
+
+.history-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 18px;
+  border: 1px solid #2563eb;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.history-btn:hover {
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+  transform: translateY(-1px);
 }
 
 .mute-btn {
