@@ -9,9 +9,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // Modular routes, helpers, and push notification services
-const pushRoutes = require('./helpers/services/routes/push.routes');
+const pushRoutes = require('./routes/push.routes');
+const attendanceRoutes = require('./routes/attendance.routes');
 const { calculateDistance } = require('./helpers/geofence');
-const { sendGeofencePushAlert } = require('./helpers/services/push.service');
+const { sendGeofencePushAlert } = require('./services/push.service');
 const { authMiddleware, JWT_SECRET } = require('./helpers/auth.middleware');
 
 // 1. INITIALIZE EXPRESS APP & SERVER
@@ -44,8 +45,10 @@ const io = new Server(server, {
 });
 
 // 5. MOUNT ROUTE MODULES
-app.use('/api/auth', require('./helpers/services/routes/routes-auth'));
+app.use('/api/auth', require('./routes/routes-auth'));
 app.use('/api', pushRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api', attendanceRoutes);
 
 // 6. INITIALIZE PRISMA & STATE
 const prisma = new PrismaClient();

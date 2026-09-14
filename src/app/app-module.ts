@@ -14,13 +14,13 @@ import { Login } from './pages/login/login';
 import { Register } from './pages/register/register';
 import { ForgotPassword } from './pages/forgot-password';
 import { ResetPassword } from './pages/reset-password';
-
+import { ShiftsHistoryComponent } from './pages/shifts-history/shifts-history';
 // Interceptor
 import { jwtInterceptor } from './interceptors/jwt-interceptor';
 
 @NgModule({
-  declarations: [App, Form, WorkerMap, AlertsPanel, Login, Register, ForgotPassword, ResetPassword],
-  imports: [BrowserModule, FormsModule, AppRoutingModule, BreachLogPanel],
+  declarations: [App, Form, WorkerMap, Login, Register, ForgotPassword, ResetPassword],
+  imports: [BrowserModule, FormsModule, AppRoutingModule, ShiftsHistoryComponent, AlertsPanel, BreachLogPanel],
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([jwtInterceptor])),

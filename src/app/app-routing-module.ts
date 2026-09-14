@@ -8,6 +8,7 @@ import { ForgotPassword } from './pages/forgot-password';
 import { ResetPassword } from './pages/reset-password';
 import { WorkerMap } from './components/worker-map/worker-map';
 import { Form } from './form/form';
+import { ShiftsHistoryComponent } from './pages/shifts-history/shifts-history';
 
 // Guards
 import { authGuard, roleGuard } from './guards/guards';
@@ -35,6 +36,7 @@ const routes: Routes = [
     component: WorkerMap, 
     canActivate: [authGuard, roleGuard(['ADMIN'])] 
   },
+  { path: 'shifts-history', component: ShiftsHistoryComponent },
 
   // Fallback
   { path: '**', redirectTo: 'login' }

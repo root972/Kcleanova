@@ -3,7 +3,9 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
-
+// resend application for sending emails
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 // Secret key used to sign and verify digital tokens (JWTs)
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_geofence_key_2026';
 
@@ -120,16 +122,14 @@ router.post('/login', async (req, res) => {
 });
 
 
+
+
+
+
 // ---------------------------
 // FORGOT / RESET PASSWORD
 // ---------------------------
 const crypto = require('crypto');
-let nodemailer;
-try {
-  nodemailer = require('nodemailer');
-} catch (e) {
-  nodemailer = null;
-}
 
 // POST /api/auth/forgot-password
 router.post('/forgot-password', async (req, res) => {
@@ -149,38 +149,32 @@ router.post('/forgot-password', async (req, res) => {
     const token = crypto.randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-    await prisma.user.update({ where: { id: user.id }, data: { resetPasswordToken: token, resetPasswordExpires: expires } });
+    await prisma.user.update({ 
+      where: { id: user.id }, 
+      data: { resetPasswordToken: token, resetPasswordExpires: expires } 
+    });
 
     const frontendHost = process.env.FRONTEND_URL || 'http://localhost:4200';
     const resetUrl = `${frontendHost}/reset-password?token=${token}`;
 
-    // Send email if transporter is configured via env vars, otherwise log the link for dev
-    if (nodemailer && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-      try {
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
-          secure: process.env.SMTP_SECURE === 'true',
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-          }
-        });
-
-        await transporter.sendMail({
-          from: process.env.SMTP_FROM || 'no-reply@example.com',
-          to: user.email,
-          subject: 'Password Reset Request',
-          text: `You requested a password reset. Use the following link (valid one hour): ${resetUrl}`,
-          html: `<p>You requested a password reset. Click the link below to reset your password (valid one hour):</p><p><a href="${resetUrl}">${resetUrl}</a></p>`
-        });
-        console.log(`Password reset email sent to ${user.email}`);
-      } catch (mailErr) {
-        console.error('Failed to send reset email:', mailErr);
-        console.log('Reset link:', resetUrl);
-      }
-    } else {
-      console.log('Password reset link (dev):', resetUrl);
+    try {
+      await resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: user.email,
+        subject: 'Kcleanova Password Reset Request',
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>Password Reset</h2>
+            <p>You requested a password reset. Click the link below to reset your password (valid for 1 hour):</p>
+            <a href="${resetUrl}" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a>
+            <p style="margin-top: 20px; color: #666;">If you didn't request this, you can safely ignore this email.</p>
+          </div>
+        `
+      });
+      console.log(`Password reset email sent via Resend to ${user.email}`);
+    } catch (mailErr) {
+      console.error('Failed to send reset email via Resend:', mailErr);
+      console.log('Fallback Reset link:', resetUrl);
     }
 
     return res.json({ message: 'If an account exists for that email, a reset link was sent.' });
@@ -196,13 +190,22 @@ router.post('/reset-password', async (req, res) => {
     const { token, newPassword } = req.body;
     if (!token || !newPassword) return res.status(400).json({ message: 'Token and newPassword are required.' });
 
-    const user = await prisma.user.findFirst({ where: { resetPasswordToken: token, resetPasswordExpires: { gt: new Date() } } });
+    const user = await prisma.user.findFirst({ 
+      where: { 
+        resetPasswordToken: token, 
+        resetPasswordExpires: { gt: new Date() } 
+      } 
+    });
+    
     if (!user) {
       return res.status(400).json({ message: 'Invalid or expired token.' });
     }
 
     const hashed = await bcrypt.hash(newPassword, 10);
-    await prisma.user.update({ where: { id: user.id }, data: { password: hashed, resetPasswordToken: null, resetPasswordExpires: null } });
+    await prisma.user.update({ 
+      where: { id: user.id }, 
+      data: { password: hashed, resetPasswordToken: null, resetPasswordExpires: null } 
+    });
 
     return res.json({ message: 'Password has been reset successfully.' });
   } catch (err) {

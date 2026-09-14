@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, NgZone, ChangeDetectorRef } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import {
@@ -25,7 +26,8 @@ interface WorkerAlertState {
 
 @Component({
   selector: 'app-alerts-panel',
-  standalone: false,
+  standalone: true,
+  imports: [RouterLink],
   templateUrl: './alerts-panel.html',
   styleUrls: ['./alerts-panel.css']
 })

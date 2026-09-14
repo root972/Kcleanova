@@ -1,0 +1,67 @@
+<div class="shifts-container">
+  <div class="shifts-header">
+    <h2>Shift History</h2>
+    <p class="subtitle">Worker ID: {{ workerId }}</p>
+  </div>
+
+  <!-- 1. LOADING STATE -->
+  @if (shiftsHistoryService.isLoading()) {
+    <div class="loading-spinner">
+      <p>Loading shifts...</p>
+    </div>
+  }
+
+  <!-- 2. DATA TABLE & PAGINATION -->
+  @if (!shiftsHistoryService.isLoading()) {
+    @if (shiftsHistoryService.shifts().length > 0) {
+      <table class="shifts-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Location</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Dynamic iteration with track for performance optimization -->
+          @for (shift of shiftsHistoryService.shifts(); track shift.id) {
+            <tr>
+              <td>{{ shift.id }}</td>
+              <td>{{ shift.location }}</td>
+              <td>{{ shift.startTime | date: 'short' }}</td>
+              <td>{{ shift.endTime | date: 'short' }}</td>
+              <td>{{ shift.notes || 'N/A' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- PAGINATION CONTROLS -->
+      <div class="pagination-controls">
+        <button 
+          (click)="prevPage()" 
+          [disabled]="currentSkip === 0">
+          Previous
+        </button>
+
+        <span>
+          Page {{ (currentSkip / limit) + 1 }} 
+          of {{ Math.ceil(shiftsHistoryService.totalCount() / limit) || 1 }}
+        </span>
+
+        <button 
+          (click)="nextPage()" 
+          [disabled]="currentSkip + limit >= shiftsHistoryService.totalCount()">
+          Next
+        </button>
+      </div>
+    } @else {
+      <!-- EMPTY STATE -->
+      <div class="no-data">
+        <p>No shift records found for this worker.</p>
+      </div>
+    }
+  }
+</div>

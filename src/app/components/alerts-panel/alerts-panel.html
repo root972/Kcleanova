@@ -53,6 +53,15 @@
         </div>
       </div>
 
+      <div class="card-actions">
+        <a
+          class="history-btn"
+          [routerLink]="['/shifts-history']"
+          [queryParams]="{ workerId: worker.workerId }">
+          View Shift History
+        </a>
+      </div>
+
       @if (worker.status === 'OUTSIDE') {
         <div class="card-actions">
           <button class="mute-btn" (click)="acknowledgeAlarm()" [disabled]="alarmAcknowledged">

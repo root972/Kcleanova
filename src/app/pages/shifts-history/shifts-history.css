@@ -1,0 +1,24 @@
+
+.shifts-container {
+    background-color: #dddada;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+ padding: 40px;
+    margin: 30px auto;
+
+}
+.shifts-table th,
+.shifts-table td {
+  padding-left: 24px;   /* Increases space on the left side of text */
+  padding-right: 24px;  /* Increases space on the right side of text */
+  text-align: left;     /* Keeps text cleanly aligned */
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px; /* Adds clean uniform space between items */
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
