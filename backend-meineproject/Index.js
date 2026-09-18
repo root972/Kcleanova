@@ -53,6 +53,16 @@ app.use('/api', attendanceRoutes);
 // 6. INITIALIZE PRISMA & STATE
 const prisma = new PrismaClient();
 
+// health backend 
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date(),
+    uptime: process.uptime()
+  });
+});
+
+
 // Dynamic geofence configuration defaults and runtime state
 const DEFAULT_GEOFENCE_CONFIG = {
   siteLat: 48.2082,

@@ -1,0 +1,45 @@
+name: Full-Stack CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [ 20.x ]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    # 1. Backend CI (Installs deps & runs Prisma generate via postinstall)
+    - name: Install Backend Dependencies
+      working-directory: ./backend-meineproject
+      run: npm ci
+
+    # 2. Frontend CI (Installs Angular deps and builds for production)
+    - name: Install Frontend Dependencies
+      run: npm ci
+
+    - name: Build Frontend for Production
+      run: npm run build -- --configuration production
+
+    # 3. Continuous Deployment (CD) to Azure VM 
+    # (We will configure this next with your SSH keys and IP address)
+    - name: Deploy to Azure VM
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        echo "Placeholder: Ready to add Azure deployment step!"
+        # This step only runs when code is pushed directly to the main branch
